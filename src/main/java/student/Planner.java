@@ -61,7 +61,8 @@ public class Planner implements IPlanner {
 
         if (!filter.isEmpty()) {
             for (String singleFilter : filters) {
-                String[] parts = singleFilter.trim().split("(?<=[a-zA-Z])(?=[><=!~])");
+                String[] parts = singleFilter.split("(?<=[a-zA-Z])\\s*(?=[><=!~])");
+
                 if (parts.length != 2) {
                     throw new IllegalArgumentException("Invalid filter: " + singleFilter);
                 }
@@ -88,7 +89,11 @@ public class Planner implements IPlanner {
                     case "<":
                     case ">=":
                     case "<=":
-                        filteredStream = applyNumericFilter(filteredStream, col, operator, value);
+                        if (col == GameData.NAME) {
+                            filteredStream = filterStringCompare(filteredStream, col, value, String::compareToIgnoreCase, operator);
+                        } else {
+                            filteredStream = applyNumericFilter(filteredStream, col, operator, value);
+                        }
                         break;
                     case "==":
                         if (col == GameData.NAME) {
@@ -278,8 +283,9 @@ public class Planner implements IPlanner {
      * @param stream the stream of board games
      * @param col the game data field to filter on
      * @param value the string value to filter on
-     * @param isEqual if true, filters the stream to include games where the column value equals the provided value;
-     *                if false, filters the stream to include games where the column value does not equal the provided value
+     * @param isEqual if true, filters the stream to include games where the column value equals
+     *                the provided value; if false, filters the stream to include games where the
+     *                column value does not equal the provided value
      * @return a stream of filtered board games
      */
     private Stream<BoardGame> filterStringEquality(Stream<BoardGame> stream, GameData col,
@@ -288,6 +294,40 @@ public class Planner implements IPlanner {
             return stream.filter(g -> g.getStringValue(col).equalsIgnoreCase(value));
         } else {
             return stream.filter(g -> !g.getStringValue(col).equalsIgnoreCase(value));
+        }
+    }
+
+    /**
+     * Filters a stream of board games based on string comparison.
+     * @param stream the stream of board games
+     * @param col the game data field to filter on
+     * @param value the string value to filter on
+     * @param comparator the comparator used for string comparison
+     * @param operator the comparison operator (">", "<", ">=", "<=")
+     * @return a stream of filtered board games
+     * @throws IllegalArgumentException if an invalid operator is provided
+     */
+    private Stream<BoardGame> filterStringCompare(Stream<BoardGame> stream, GameData col, String value,
+                                                  Comparator<String> comparator, String operator) {
+        switch (operator) {
+            case ">":
+                return stream.filter(
+                        g -> comparator.compare(g.getStringValue(col).toLowerCase(), value.toLowerCase()) > 0
+                );
+            case "<":
+                return stream.filter(
+                        g -> comparator.compare(g.getStringValue(col).toLowerCase(), value.toLowerCase()) < 0
+                );
+            case ">=":
+                return stream.filter(
+                        g -> comparator.compare(g.getStringValue(col).toLowerCase(), value.toLowerCase()) >= 0
+                );
+            case "<=":
+                return stream.filter(
+                        g -> comparator.compare(g.getStringValue(col).toLowerCase(), value.toLowerCase()) <= 0
+                );
+            default:
+                throw new IllegalArgumentException("Invalid operator: " + operator);
         }
     }
 
