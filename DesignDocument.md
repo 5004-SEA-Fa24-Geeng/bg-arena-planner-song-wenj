@@ -12,14 +12,217 @@ Place your class diagrams below. Make sure you check the file in the browser on 
 
 Provide a class diagram for the provided code as you read through it.  For the classes you are adding, you will create them as a separate diagram, so for now, you can just point towards the interfaces for the provided code diagram.
 
+```mermaid
+classDiagram
+    BGArenaPlanner ..> IPlanner
+    BGArenaPlanner ..> IGameList
+    BGArenaPlanner ..> GamesLoader
+    BGArenaPlanner --> ConsoleApp
 
+    IPlanner ..> BoardGame
+    IPlanner ..> GameData
+    IGameList ..> BoardGame
+    
+    GamesLoader ..> BoardGame
+    
+    BoardGame ..> GameData
+    
+    ConsoleApp ..> IPlanner
+    ConsoleApp ..> IGameList
+    ConsoleApp ..> ConsoleText
+    ConsoleApp ..> BoardGame
+    ConsoleApp ..> GameData
+
+    class BGArenaPlanner {
+        -static final String DEFAULT_COLLECTION
+        -BGArenaPlanner()
+        +main(String[] args)
+    }
+
+    class IPlanner {
+        <<interface>>
+        +filter(String filter) : Stream<BoardGame>
+        +filter(String filter, GameData sortOn) : Stream<BoardGame>
+        +filter(String filter, GameData sortOn, boolean ascending) : Stream<BoardGame>
+        +reset()
+    }
+    
+    class IGameList {
+        <<interface>>
+        +addToList(String gameName, Stream<BoardGame> games)
+        +removeFromList(String gameName)
+        +clear()
+        +count() : int
+        +getGameNames() : List<String>
+        +saveGame(String fileName)
+        +static final String ADD_ALL
+    }
+
+    class GamesLoader {
+        <<static>>
+        +loadGamesFile(String fileName) : Set<BoardGame>
+    }
+
+    class ConsoleApp {
+        -static final Scanner IN
+        -static final String DEFAULT_FILENAME
+        -static final Random RND
+        -Scanner current
+        -IGameList gameList
+        -IPlanner planner
+        +ConsoleApp(IGameList gameList, IPlanner planner)
+        +start()
+        -randomNumber()
+        -processHelp()
+        -processFilter()
+        -printFilterStream(Stream<BoardGame> games, GameData sortON)
+        -processListCommands()
+        -printCurrentList()
+        -nextCommand()
+        -remainder()
+        -getInput(String format, Object... args)
+        -printOutput(String format, Object... output)
+    }
+
+    class ConsoleText {
+        WELCOME, HELP, INVALID, GOODBYE, PROMPT, NO_FILTER,
+        NO_GAMES_LIST, FILTERED_CLEAR, LIST_HELP, FILTER_HELP,
+        INVALID_LIST, EASTER_EGG, CMD_EASTER_EGG, CMD_EXIT,
+        CMD_HELP, CMD_QUESTION, CMD_FILTER, CMD_LIST, CMD_SHOW,
+        CMD_ADD, CMD_REMOVE, CMD_CLEAR, CMD_SAVE, CMD_OPTION_ALL,
+        CMD_SORT_OPTION, CMD_SORT_OPTION_DIRECTION_ASC,
+        CMD_SORT_OPTION_DIRECTION_DESC
+        -static final Properties CTEXT
+        +toString() : String
+        +fromString(String str) : ConsoleText
+    }
+
+    class BoardGame {
+        -String name
+        -int id
+        -int minPlayers
+        -int maxPlayers
+        -int maxPlayTime
+        -int minPlayTime
+        -double difficulty
+        -int rank
+        -double averageRating
+        -int yearPublished
+        +BoardGame(String name, int id, int minPlayers,\nint maxPlayers, int minPlayTime, int maxPlayTime,\ndouble difficulty, int rank, double averageRating,\nint yearPublished)
+        +getName() : String
+        +getId() : int
+        +getMinPlayers() : int
+        +getMaxPlayers() : int
+        +getMaxPlayTime() : int
+        +getMinPlayTime() : int
+        +getDifficulty() : double
+        +getRank() : int
+        +getRating() : double
+        +getYearPublished() : int
+        +toStringWithInfo(GameData col) : String
+        +toString() : String
+        +equals(Object obj) : boolean
+        +hashCode() : int
+    }
+
+    class GameData {
+        NAME, ID, RATING, DIFFICULTY, RANK, MIN_PLAYERS, MAX_PLAYERS,
+        MIN_TIME, MAX_TIME, YEAR
+        -static final String columnName
+        +getColumnName() : String
+        +fromColumnName(String columnName) : GameData
+        +fromString(String name) : GameData
+    }
+
+    class Operations {
+        EQUALS, NOT_EQUALS, GREATER_THAN, LESS_THAN, GREATER_THAN_EQUALS,
+        LESS_THAN_EQUALS, CONTAINS
+        -static final String operator
+        +getOperator() : String
+        +fromOperator(String operator) : Operations
+        +getOperatorFromStr(String str) : Operations
+    }
+```
 
 ### Your Plans/Design
 
 Create a class diagram for the classes you plan to create. This is your initial design, and it is okay if it changes. Your starting points are the interfaces. 
 
+```mermaid
+classDiagram
+    Planner --|> IPlanner
+    Planner ..> BoardGame
+    Planner ..> GameData
+    Planner ..> Operations
 
+    GameList --|> IGameList
+    GameList ..> BoardGame
 
+    class IPlanner {
+        <<interface>>
+        +filter(String filter) : Stream<BoardGame>
+        +filter(String filter, GameData sortOn) : Stream<BoardGame>
+        +filter(String filter, GameData sortOn, boolean ascending) : Stream<BoardGame>
+        +reset()
+    }
+
+    class IGameList {
+        <<interface>>
+        +addToList(String gameName, Stream<BoardGame> games)
+        +removeFromList(String gameName)
+        +clear()
+        +count() : int
+        +getGameNames() : List<String>
+        +saveGame(String fileName)
+        +static final String ADD_ALL
+    }
+
+    class BoardGame {
+        -String name
+        -int id
+        -int minPlayers
+        -int maxPlayers
+        -int maxPlayTime
+        -int minPlayTime
+        -double difficulty
+        -int rank
+        -double averageRating
+        -int yearPublished
+        +BoardGame(String name, int id, int minPlayers,\nint maxPlayers, int minPlayTime, int maxPlayTime,\ndouble difficulty, int rank, double averageRating,\nint yearPublished)
+        +getName() : String
+        +getId() : int
+        +getMinPlayers() : int
+        +getMaxPlayers() : int
+        +getMaxPlayTime() : int
+        +getMinPlayTime() : int
+        +getDifficulty() : double
+        +getRank() : int
+        +getRating() : double
+        +getYearPublished() : int
+        +toStringWithInfo(GameData col) : String
+        +toString() : String
+        +equals(Object obj) : boolean
+        +hashCode() : int
+    }
+
+    class GameData {
+        NAME, ID, RATING, DIFFICULTY, RANK, MIN_PLAYERS, MAX_PLAYERS,
+        MIN_TIME, MAX_TIME, YEAR
+        -static final String columnName
+        +getColumnName() : String
+        +fromColumnName(String columnName) : GameData
+        +fromString(String name) : GameData
+    }
+
+    class Operations {
+        EQUALS, NOT_EQUALS, GREATER_THAN, LESS_THAN, GREATER_THAN_EQUALS,
+        LESS_THAN_EQUALS, CONTAINS
+        -static final String operator
+        +getOperator() : String
+        +fromOperator(String operator) : Operations
+        +getOperatorFromStr(String str) : Operations
+    }
+```
 
 
 ## (INITIAL DESIGN): Tests to Write - Brainstorm
@@ -36,11 +239,39 @@ Write a test (in english) that you can picture for the class diagram you have cr
 
 You should feel free to number your brainstorm. 
 
-1. Test 1..
-2. Test 2..
+1. BoardGame Class
+* Test Constructor: verifies that all fields are correctly initialized
+* Test Getters: verifies that each getter method returns the correct value for its corresponding field
+* Test toStringWithInfo: verifies that the method returns the expected string representation based on the GameData column
+* Test toString: verifies that the method returns the correct string representation of the object
+* Test equals: verifies that the method correctly determines equality based on the specified fields
+* Test hashCode: verifies that the method returns a consistent hash code based on the specified fields
 
+2. GamesLoader Class
+* testLoadInvalidFile(): test loading from an invalid file path, assert games is an empty set
+* testLoadEmptyFile(): test loading an empty csv file, assert games is an empty set
+* testLoadGamesFile(): test loading from a correct file path, assert games is non-empty and the
+BoardGame object has its attributes set correctly
 
+3. Planner Class
+* Test filter(String filter): verify that the method filters the stream correctly
+* Test filter(String filter, GameData sortOn)
+* Test filter(String filter, GameData sortOn, boolean ascending)
+* Test reset: verify that the reset method clears all filters
 
+4. GameList Class
+* Test addToList: verify that the method adds a game correctly
+* Test removeFromList: verify that the method removes a game correctly
+* Test clear: verify that the method empties the game list
+* Test count: verify that the method returns the correct number of games in the list
+* Test getGameNames: verify that the method returns the list of game names correctly
+* Test saveGame: verify that the method can correctly save the list of games to a file
+
+5. ConsoleApp Class
+* Test processHelp: verify that the correct message is displayed
+* Test processFilter: verify that correct filtering results are achieved
+* Test processListCommands: verify that the list commands (show, clear, add, remove, and save) work correctly
+* Test start: verify that the program starts correctly
 
 ## (FINAL DESIGN): Class Diagram
 
@@ -52,7 +283,73 @@ For the final design, you just need to do a single diagram that includes both th
 > If you resubmit your assignment for manual grading, this is a section that often needs updating. You should double check with every resubmit to make sure it is up to date.
 
 
+```mermaid
+classDiagram
+    class GameData {
+        +NAME : GameData
+        +ID : GameData
+        +RATING : GameData
+        +DIFFICULTY : GameData
+        +RANK : GameData
+        +MIN_PLAYERS : GameData
+        +MAX_PLAYERS : GameData
+        +MIN_TIME : GameData
+        +MAX_TIME : GameData
+        +YEAR : GameData
+        -columnName : String
+        +GameData(String columnName)
+        +getColumnName() : String
+        +fromColumnName(String columnName) : GameData
+        +fromString(String name) : GameData
+    }
+```
 
+
+```mermaid
+classDiagram
+    class BoardGame {
+        -name : String
+        -id : int
+        -minPlayers : int
+        -maxPlayers : int
+        -maxPlayTime : int
+        -minPlayTime : int
+        -difficulty : double
+        -rank : int
+        -averageRating : double
+        -yearPublished : int
+        +BoardGame(name: String, id: int, \nminPlayers: int, maxPlayers: int, \nminPlayTime: int, maxPlayTime: int, \ndifficulty: double, rank: int, \naverageRating: double, yearPublished: int)
+        +getName() : String
+        +getId() : int
+        +getMinPlayers() : int
+        +getMaxPlayers() : int
+        +getMaxPlayTime() : int
+        +getMinPlayTime() : int
+        +getDifficulty() : double
+        +getRank() : int
+        +getRating() : double
+        +getYearPublished() : int
+        +toStringWithInfo(col: GameData) : String
+        +getNumericValue(col: GameData) : Integer
+        +getStringValue(col: GameData) : String
+        +toString() : String
+        +equals(Object obj) : boolean
+        +hashCode() : int
+        +main(String[] args) : void
+    }
+```
+
+
+```mermaid
+classDiagram
+    class GamesLoader {
+        -DELIMITER : String
+        -GamesLoader()
+        +loadGamesFile(fileName: String) : Set<BoardGame>
+        -toBoardGame(line: String, columnMap: Map<GameData, Integer>) : BoardGame
+        -processHeader(header: String) : Map<GameData, Integer>
+    }
+```
 
 
 ## (FINAL DESIGN): Reflection/Retrospective

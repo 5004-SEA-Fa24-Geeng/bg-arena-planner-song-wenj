@@ -1,30 +1,25 @@
 package student;
 
-
 /**
  * Main entry point for the program.
  */
 public final class BGArenaPlanner {
-    /** default location of collection - relative to the resources directory. */
+    /** Default location of collection - relative to resources. */
     private static final String DEFAULT_COLLECTION = "/collection.csv";
 
-    /** private constructor as static class. */
+    /** Private constructor as static class. */
     private BGArenaPlanner() {
-
     }
 
     /**
      * Main entry point for the program.
-     * 
      * @param args command line arguments - not used at this time.
      */
     public static void main(String[] args) {
+        IGameList gameList = new GameList();
         IPlanner planner = new Planner(GamesLoader.loadGamesFile(DEFAULT_COLLECTION));
-        IGameList list = new GameList();
-        ConsoleApp app = new ConsoleApp(list, planner);
+
+        ConsoleApp app = new ConsoleApp(gameList, planner);
         app.start();
     }
-
-
-
 }
