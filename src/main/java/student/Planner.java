@@ -90,7 +90,8 @@ public class Planner implements IPlanner {
                     case ">=":
                     case "<=":
                         if (col == GameData.NAME) {
-                            filteredStream = filterStringCompare(filteredStream, col, value, String::compareToIgnoreCase, operator);
+                            filteredStream = filterStringCompare(filteredStream, col, value,
+                                    String::compareToIgnoreCase, operator);
                         } else {
                             filteredStream = applyNumericFilter(filteredStream, col, operator, value);
                         }
