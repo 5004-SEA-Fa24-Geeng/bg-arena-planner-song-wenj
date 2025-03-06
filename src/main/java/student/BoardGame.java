@@ -235,18 +235,18 @@ public class BoardGame {
      */
     @Override
     public String toString() {
-        return "BoardGame{" +
-                "name='" + name + '\'' +
-                ", id=" + id +
-                ", minPlayers=" + minPlayers +
-                ", maxPlayers=" + maxPlayers +
-                ", maxPlayTime=" + maxPlayTime +
-                ", minPlayTime=" + minPlayTime +
-                ", difficulty=" + difficulty +
-                ", rank=" + rank +
-                ", averageRating=" + averageRating +
-                ", yearPublished=" + yearPublished +
-                '}';
+        return "BoardGame{"
+                + "name='" + name + '\''
+                + ", id=" + id
+                + ", minPlayers=" + minPlayers
+                + ", maxPlayers=" + maxPlayers
+                + ", maxPlayTime=" + maxPlayTime
+                + ", minPlayTime=" + minPlayTime
+                + ", difficulty=" + difficulty
+                + ", rank=" + rank
+                + ", averageRating=" + averageRating
+                + ", yearPublished=" + yearPublished
+                + '}';
     }
 
     /**

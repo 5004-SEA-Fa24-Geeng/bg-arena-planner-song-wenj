@@ -5,27 +5,54 @@ import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * A planner class that manages a set of board games and allows filtering and sorting of the games.
+ */
 public class Planner implements IPlanner {
+    /** The set of all board games managed by the planner. */
     private Set<BoardGame> games;
+    /** The initial set of board games, used for resetting the state. */
     private Set<BoardGame> initialGames;
 
+    /**
+     * Constructs a new Planner with the specified set of board games.
+     * @param games the set of board games to be managed by the planner
+     */
     public Planner(Set<BoardGame> games) {
         this.games = new HashSet<>(games);
         this.initialGames = new HashSet<>(games);
     }
 
+    /**
+     * Filters the board games based on the specified filter string and default sorting criteria.
+     * @param filter the filter string
+     * @return a stream of filtered and sorted board games
+     */
     @Override
     public Stream<BoardGame> filter(String filter) {
         // Call the detailed filter method with default sorting criteria
         return filter(filter, GameData.NAME, true);
     }
 
+    /**
+     * Filters the board games based on the specified filter string and sorting criteria.
+     * @param filter the filter string
+     * @param sortOn the game data field to sort on
+     * @return a stream of filtered and sorted board games
+     */
     @Override
     public Stream<BoardGame> filter(String filter, GameData sortOn) {
         // Call the detailed filter method with default ascending order
         return filter(filter, sortOn, true);
     }
 
+    /**
+     * Filters and sorts the board games based on the specified filter string, sorting criteria, and sorting order.
+     * @param filter the filter string
+     * @param sortOn the game data field to sort on
+     * @param ascending true if the sort order is ascending, false if descending
+     * @return a stream of filtered and sorted board games
+     */
     @Override
     public Stream<BoardGame> filter(String filter, GameData sortOn, boolean ascending) {
         String[] filters = filter.split(",");
@@ -44,8 +71,9 @@ public class Planner implements IPlanner {
 
                 String operator;
                 String value;
-                if (operatorAndValue.contains(">=") || operatorAndValue.contains("<=") || operatorAndValue.contains("==") ||
-                        operatorAndValue.contains("!=") || operatorAndValue.contains("~=")) {
+                if (operatorAndValue.contains(">=") || operatorAndValue.contains("<=")
+                        || operatorAndValue.contains("==") || operatorAndValue.contains("!=")
+                        || operatorAndValue.contains("~=")) {
                     operator = operatorAndValue.substring(0, 2);
                     value = operatorAndValue.substring(2);
                 } else {
@@ -66,7 +94,9 @@ public class Planner implements IPlanner {
                         break;
                     case "~=":
                         if (col != GameData.NAME) {
-                            throw new IllegalArgumentException("The ~= operator can only be applied to the name field.");
+                            throw new IllegalArgumentException(
+                                    "The ~= operator can only be applied to the name field."
+                            );
                         }
                         filteredStream = filterString(filteredStream, col, value, String::contains);
                         break;
@@ -86,6 +116,14 @@ public class Planner implements IPlanner {
         });
     }
 
+    /**
+     * Compares two board games based on the specified sorting criteria.
+     * @param g1 the first board game
+     * @param g2 the second board game
+     * @param sortOn the game data field to sort on
+     * @return a negative integer, zero, or a positive integer as the first board game
+     * is less than, equal to, or greater than the second board game
+     */
     private int compare(BoardGame g1, BoardGame g2, GameData sortOn) {
         switch (sortOn) {
             case NAME:
@@ -111,7 +149,16 @@ public class Planner implements IPlanner {
         }
     }
 
-    private Stream<BoardGame> applyNumericFilter(Stream<BoardGame> stream, GameData col, String operator, String value) {
+    /**
+     * Applies a numeric filter to the specified stream of board games.
+     * @param stream the stream of board games
+     * @param col the game data field to filter on
+     * @param operator the operator to use for filtering
+     * @param value the value to filter on
+     * @return a stream of filtered board games
+     */
+    private Stream<BoardGame> applyNumericFilter(Stream<BoardGame> stream, GameData col,
+                                                 String operator, String value) {
         if (col == GameData.NAME) {
             throw new IllegalArgumentException("The " + operator + " operator can only be applied to numeric fields.");
         } else if (col == GameData.RATING || col == GameData.DIFFICULTY) {
@@ -123,6 +170,14 @@ public class Planner implements IPlanner {
         }
     }
 
+    /**
+     * Applies a double filter to the specified stream of board games.
+     * @param stream the stream of board games
+     * @param col the game data field to filter on
+     * @param operator the operator to use for filtering
+     * @param value the double value to filter on
+     * @return a stream of filtered board games
+     */
     private Stream<BoardGame> applyDoubleFilter(Stream<BoardGame> stream, GameData col, String operator, double value) {
         switch (operator) {
             case ">":
@@ -142,6 +197,14 @@ public class Planner implements IPlanner {
         }
     }
 
+    /**
+     * Applies an integer filter to the specified stream of board games.
+     * @param stream the stream of board games
+     * @param col the game data field to filter on
+     * @param operator the operator to use for filtering
+     * @param value the integer value to filter on
+     * @return a stream of filtered board games
+     */
     private Stream<BoardGame> applyIntFilter(Stream<BoardGame> stream, GameData col, String operator, int value) {
         switch (operator) {
             case ">":
@@ -161,18 +224,46 @@ public class Planner implements IPlanner {
         }
     }
 
-    private Stream<BoardGame> filterNumericDouble(Stream<BoardGame> stream, double value, BiPredicate<BoardGame, Double> predicate) {
+    /**
+     * Filters the stream of board games based on a numeric double value.
+     * @param stream the stream of board games
+     * @param value the numeric double value to filter on
+     * @param predicate the predicate to apply for filtering
+     * @return a stream of filtered board games
+     */
+    private Stream<BoardGame> filterNumericDouble(Stream<BoardGame> stream, double value,
+                                                  BiPredicate<BoardGame, Double> predicate) {
         return stream.filter(g -> predicate.test(g, value));
     }
 
-    private Stream<BoardGame> filterNumericInt(Stream<BoardGame> stream, int value, BiPredicate<BoardGame, Integer> predicate) {
+    /**
+     * Filters the stream of board games based on a numeric integer value.
+     * @param stream the stream of board games
+     * @param value the numeric integer value to filter on
+     * @param predicate the predicate to apply for filtering
+     * @return a stream of filtered board games
+     */
+    private Stream<BoardGame> filterNumericInt(Stream<BoardGame> stream, int value,
+                                               BiPredicate<BoardGame, Integer> predicate) {
         return stream.filter(g -> predicate.test(g, value));
     }
 
-    private Stream<BoardGame> filterString(Stream<BoardGame> stream, GameData col, String value, BiPredicate<String, String> predicate) {
+    /**
+     * Filters the stream of board games based on a string value.
+     * @param stream the stream of board games
+     * @param col the game data field to filter on
+     * @param value the string value to filter on
+     * @param predicate the predicate to apply for filtering
+     * @return a stream of filtered board games
+     */
+    private Stream<BoardGame> filterString(Stream<BoardGame> stream, GameData col, String value,
+                                           BiPredicate<String, String> predicate) {
         return stream.filter(g -> predicate.test(g.getStringValue(col).toLowerCase(), value.toLowerCase()));
     }
 
+    /**
+     * Resets the board games to the initial state.
+     */
     @Override
     public void reset() {
         games = new HashSet<>(initialGames);

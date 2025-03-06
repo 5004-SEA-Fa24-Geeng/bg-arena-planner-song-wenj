@@ -323,7 +323,7 @@ public class ConsoleApp {
         INVALID_LIST, EASTER_EGG, CMD_EASTER_EGG,
         /** Commands general. */
         CMD_EXIT, CMD_HELP, CMD_QUESTION, CMD_FILTER, CMD_LIST,
-        /** Commands specific to lists and filters */
+        /** Commands specific to lists and filters. */
         CMD_SHOW, CMD_ADD, CMD_REMOVE, CMD_CLEAR, CMD_SAVE,
         /** More options on commands. */
         CMD_OPTION_ALL, CMD_SORT_OPTION, CMD_SORT_OPTION_DIRECTION_ASC, CMD_SORT_OPTION_DIRECTION_DESC;

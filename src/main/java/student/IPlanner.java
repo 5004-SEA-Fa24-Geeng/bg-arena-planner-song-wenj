@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 public interface IPlanner {
 
     /**
-     * Assumes the results are sorted in ascending order, and that the stream is sorted by the name
+     * Assumes the results are sorted in ascending order, and that the stream is sorted by the name.
      * @param filter The filter to apply to the board games.
      * @return A stream of board games that match the filter.
      * @see #filter(String, GameData, boolean)

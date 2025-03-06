@@ -3,7 +3,6 @@ package student;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -136,7 +135,7 @@ public class GameList implements IGameList {
             games.remove(index);
         } else {
             boolean found = false;
-            for (Iterator<BoardGame> iterator = games.iterator(); iterator.hasNext(); ) {
+            for (Iterator<BoardGame> iterator = games.iterator(); iterator.hasNext();) {
                 BoardGame game = iterator.next();
                 if (game.getName().equalsIgnoreCase(str.trim())) {
                     iterator.remove();
