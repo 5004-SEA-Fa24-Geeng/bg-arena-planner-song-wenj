@@ -218,10 +218,7 @@ public class ConsoleApp {
 
         if (current.hasNext()) {
             String filter = remainder();
-            filter = filter.replaceAll("\\s", "");
-            filter = filter.toLowerCase();
-
-            System.out.println("filter: " + filter);
+            filter = filter.trim().toLowerCase();
 
             if (filter.equalsIgnoreCase(ConsoleText.CMD_QUESTION.toString())) {
                 printOutput("%s%n", ConsoleText.FILTER_HELP);
@@ -238,7 +235,7 @@ public class ConsoleApp {
                 boolean ascending = true;
                 String[] parts = filter.split(ConsoleText.CMD_SORT_OPTION.toString());
                 if (parts.length == 2) {
-                    String sort = parts[1];
+                    String sort = parts[1].trim();
                     if (sort.contains(ConsoleText.CMD_SORT_OPTION_DIRECTION_ASC.toString())) {
                         sort = sort.substring(0,
                                 sort.indexOf(ConsoleText.CMD_SORT_OPTION_DIRECTION_ASC.toString()));

@@ -61,13 +61,13 @@ public class Planner implements IPlanner {
 
         if (!filter.isEmpty()) {
             for (String singleFilter : filters) {
-                String[] parts = singleFilter.split("(?<=[a-zA-Z])(?=[><=!~])");
+                String[] parts = singleFilter.trim().split("(?<=[a-zA-Z])(?=[><=!~])");
                 if (parts.length != 2) {
                     throw new IllegalArgumentException("Invalid filter: " + singleFilter);
                 }
 
-                String columnName = parts[0];
-                String operatorAndValue = parts[1];
+                String columnName = parts[0].trim();
+                String operatorAndValue = parts[1].trim();
 
                 String operator;
                 String value;
@@ -75,10 +75,10 @@ public class Planner implements IPlanner {
                         || operatorAndValue.contains("==") || operatorAndValue.contains("!=")
                         || operatorAndValue.contains("~=")) {
                     operator = operatorAndValue.substring(0, 2);
-                    value = operatorAndValue.substring(2);
+                    value = operatorAndValue.substring(2).trim();
                 } else {
                     operator = operatorAndValue.substring(0, 1);
-                    value = operatorAndValue.substring(1);
+                    value = operatorAndValue.substring(1).trim();
                 }
 
                 GameData col = GameData.fromString(columnName);
@@ -88,9 +88,21 @@ public class Planner implements IPlanner {
                     case "<":
                     case ">=":
                     case "<=":
-                    case "==":
-                    case "!=":
                         filteredStream = applyNumericFilter(filteredStream, col, operator, value);
+                        break;
+                    case "==":
+                        if (col == GameData.NAME) {
+                            filteredStream = filterStringEquality(filteredStream, col, value, true);
+                        } else {
+                            filteredStream = applyNumericFilter(filteredStream, col, operator, value);
+                        }
+                        break;
+                    case "!=":
+                        if (col == GameData.NAME) {
+                            filteredStream = filterStringEquality(filteredStream, col, value, false);
+                        } else {
+                            filteredStream = applyNumericFilter(filteredStream, col, operator, value);
+                        }
                         break;
                     case "~=":
                         if (col != GameData.NAME) {
@@ -259,6 +271,24 @@ public class Planner implements IPlanner {
     private Stream<BoardGame> filterString(Stream<BoardGame> stream, GameData col, String value,
                                            BiPredicate<String, String> predicate) {
         return stream.filter(g -> predicate.test(g.getStringValue(col).toLowerCase(), value.toLowerCase()));
+    }
+
+    /**
+     * Filters a stream of board games based on string equality or inequality.
+     * @param stream the stream of board games
+     * @param col the game data field to filter on
+     * @param value the string value to filter on
+     * @param isEqual if true, filters the stream to include games where the column value equals the provided value;
+     *                if false, filters the stream to include games where the column value does not equal the provided value
+     * @return a stream of filtered board games
+     */
+    private Stream<BoardGame> filterStringEquality(Stream<BoardGame> stream, GameData col,
+                                                   String value, boolean isEqual) {
+        if (isEqual) {
+            return stream.filter(g -> g.getStringValue(col).equalsIgnoreCase(value));
+        } else {
+            return stream.filter(g -> !g.getStringValue(col).equalsIgnoreCase(value));
+        }
     }
 
     /**
