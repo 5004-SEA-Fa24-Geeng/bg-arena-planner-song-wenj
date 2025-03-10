@@ -100,9 +100,11 @@ public class Planner implements IPlanner {
                             filteredStream = filterStringCompare(filteredStream, col, value,
                                     String::compareToIgnoreCase, operator);
                         } else if (col == GameData.RATING || col == GameData.DIFFICULTY) {
-                            filteredStream = filterNumericDouble(filteredStream, col, value, Double::compareTo, operator);
+                            filteredStream = filterNumericDouble(filteredStream, col, value,
+                                    Double::compareTo, operator);
                         } else {
-                            filteredStream = filterNumericInt(filteredStream, col, value, Integer::compareTo, operator);
+                            filteredStream = filterNumericInt(filteredStream, col, value,
+                                    Integer::compareTo, operator);
                         }
                         break;
                     case CONTAINS:
