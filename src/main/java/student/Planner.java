@@ -70,53 +70,48 @@ public class Planner implements IPlanner {
                 String columnName = parts[0].trim();
                 String operatorAndValue = parts[1].trim();
 
-                String operator;
+                String operatorString;
                 String value;
                 if (operatorAndValue.contains(">=") || operatorAndValue.contains("<=")
                         || operatorAndValue.contains("==") || operatorAndValue.contains("!=")
                         || operatorAndValue.contains("~=")) {
-                    operator = operatorAndValue.substring(0, 2);
+                    operatorString = operatorAndValue.substring(0, 2);
                     value = operatorAndValue.substring(2).trim();
                 } else {
-                    operator = operatorAndValue.substring(0, 1);
+                    operatorString = operatorAndValue.substring(0, 1);
                     value = operatorAndValue.substring(1).trim();
+                }
+
+                Operations operator = Operations.getOperatorFromStr(operatorString);
+                if (operator == null) {
+                    throw new IllegalArgumentException("Invalid operator: " + operatorString);
                 }
 
                 GameData col = GameData.fromString(columnName);
 
                 switch (operator) {
-                    case ">":
-                    case "<":
-                    case ">=":
-                    case "<=":
+                    case GREATER_THAN:
+                    case LESS_THAN:
+                    case GREATER_THAN_EQUALS:
+                    case LESS_THAN_EQUALS:
+                    case EQUALS:
+                    case NOT_EQUALS:
                         if (col == GameData.NAME) {
                             filteredStream = filterStringCompare(filteredStream, col, value,
                                     String::compareToIgnoreCase, operator);
+                        } else if (col == GameData.RATING || col == GameData.DIFFICULTY) {
+                            filteredStream = filterNumericDouble(filteredStream, col, value, Double::compareTo, operator);
                         } else {
-                            filteredStream = applyNumericFilter(filteredStream, col, operator, value);
+                            filteredStream = filterNumericInt(filteredStream, col, value, Integer::compareTo, operator);
                         }
                         break;
-                    case "==":
-                        if (col == GameData.NAME) {
-                            filteredStream = filterStringEquality(filteredStream, col, value, true);
-                        } else {
-                            filteredStream = applyNumericFilter(filteredStream, col, operator, value);
-                        }
-                        break;
-                    case "!=":
-                        if (col == GameData.NAME) {
-                            filteredStream = filterStringEquality(filteredStream, col, value, false);
-                        } else {
-                            filteredStream = applyNumericFilter(filteredStream, col, operator, value);
-                        }
-                        break;
-                    case "~=":
+                    case CONTAINS:
                         if (col != GameData.NAME) {
                             throw new IllegalArgumentException(
                                     "The ~= operator can only be applied to the name field."
                             );
                         }
-                        filteredStream = filterString(filteredStream, col, value, String::contains);
+                        filteredStream = filterStringContains(filteredStream, col, value, String::contains);
                         break;
                     default:
                         throw new IllegalArgumentException("Invalid operator: " + operator);
@@ -163,107 +158,50 @@ public class Planner implements IPlanner {
             case YEAR:
                 return Integer.compare(g1.getYearPublished(), g2.getYearPublished());
             default:
-                throw new IllegalArgumentException("Invalid GameData: " + sortOn);
+                throw new IllegalArgumentException("Invalid column: " + sortOn);
         }
     }
 
     /**
-     * Applies a numeric filter to the specified stream of board games.
+     * Filters a stream of board games based on string comparison.
      * @param stream the stream of board games
      * @param col the game data field to filter on
-     * @param operator the operator to use for filtering
-     * @param value the value to filter on
+     * @param value the string value to filter on
+     * @param comparator the comparator used for string comparison
+     * @param operator the comparison operator (">", "<", ">=", "<=", "==", "!=")
      * @return a stream of filtered board games
+     * @throws IllegalArgumentException if an invalid operator is provided
      */
-    private Stream<BoardGame> applyNumericFilter(Stream<BoardGame> stream, GameData col,
-                                                 String operator, String value) {
-        if (col == GameData.NAME) {
-            throw new IllegalArgumentException("The " + operator + " operator can only be applied to numeric fields.");
-        } else if (col == GameData.RATING || col == GameData.DIFFICULTY) {
-            double doubleValue = Double.parseDouble(value);
-            return applyDoubleFilter(stream, col, operator, doubleValue);
-        } else {
-            int intValue = Integer.parseInt(value);
-            return applyIntFilter(stream, col, operator, intValue);
-        }
-    }
-
-    /**
-     * Applies a double filter to the specified stream of board games.
-     * @param stream the stream of board games
-     * @param col the game data field to filter on
-     * @param operator the operator to use for filtering
-     * @param value the double value to filter on
-     * @return a stream of filtered board games
-     */
-    private Stream<BoardGame> applyDoubleFilter(Stream<BoardGame> stream, GameData col, String operator, double value) {
+    private Stream<BoardGame> filterStringCompare(Stream<BoardGame> stream, GameData col, String value,
+                                                  Comparator<String> comparator, Operations operator) {
         switch (operator) {
-            case ">":
-                return filterNumericDouble(stream, value, (g, v) -> g.getNumericValueDouble(col) > v);
-            case "<":
-                return filterNumericDouble(stream, value, (g, v) -> g.getNumericValueDouble(col) < v);
-            case ">=":
-                return filterNumericDouble(stream, value, (g, v) -> g.getNumericValueDouble(col) >= v);
-            case "<=":
-                return filterNumericDouble(stream, value, (g, v) -> g.getNumericValueDouble(col) <= v);
-            case "==":
-                return filterNumericDouble(stream, value, (g, v) -> g.getNumericValueDouble(col).equals(v));
-            case "!=":
-                return filterNumericDouble(stream, value, (g, v) -> !g.getNumericValueDouble(col).equals(v));
+            case GREATER_THAN:
+                return stream.filter(
+                        g -> comparator.compare(g.getStringValue(col).toLowerCase(), value.toLowerCase()) > 0
+                );
+            case LESS_THAN:
+                return stream.filter(
+                        g -> comparator.compare(g.getStringValue(col).toLowerCase(), value.toLowerCase()) < 0
+                );
+            case GREATER_THAN_EQUALS:
+                return stream.filter(
+                        g -> comparator.compare(g.getStringValue(col).toLowerCase(), value.toLowerCase()) >= 0
+                );
+            case LESS_THAN_EQUALS:
+                return stream.filter(
+                        g -> comparator.compare(g.getStringValue(col).toLowerCase(), value.toLowerCase()) <= 0
+                );
+            case EQUALS:
+                return stream.filter(
+                        g -> comparator.compare(g.getStringValue(col).toLowerCase(), value.toLowerCase()) == 0
+                );
+            case NOT_EQUALS:
+                return stream.filter(
+                        g -> comparator.compare(g.getStringValue(col).toLowerCase(), value.toLowerCase()) != 0
+                );
             default:
                 throw new IllegalArgumentException("Invalid operator: " + operator);
         }
-    }
-
-    /**
-     * Applies an integer filter to the specified stream of board games.
-     * @param stream the stream of board games
-     * @param col the game data field to filter on
-     * @param operator the operator to use for filtering
-     * @param value the integer value to filter on
-     * @return a stream of filtered board games
-     */
-    private Stream<BoardGame> applyIntFilter(Stream<BoardGame> stream, GameData col, String operator, int value) {
-        switch (operator) {
-            case ">":
-                return filterNumericInt(stream, value, (g, v) -> g.getNumericValueInt(col) > v);
-            case "<":
-                return filterNumericInt(stream, value, (g, v) -> g.getNumericValueInt(col) < v);
-            case ">=":
-                return filterNumericInt(stream, value, (g, v) -> g.getNumericValueInt(col) >= v);
-            case "<=":
-                return filterNumericInt(stream, value, (g, v) -> g.getNumericValueInt(col) <= v);
-            case "==":
-                return filterNumericInt(stream, value, (g, v) -> g.getNumericValueInt(col).equals(v));
-            case "!=":
-                return filterNumericInt(stream, value, (g, v) -> !g.getNumericValueInt(col).equals(v));
-            default:
-                throw new IllegalArgumentException("Invalid operator: " + operator);
-        }
-    }
-
-    /**
-     * Filters the stream of board games based on a numeric double value.
-     * @param stream the stream of board games
-     * @param value the numeric double value to filter on
-     * @param predicate the predicate to apply for filtering
-     * @return a stream of filtered board games
-     */
-    private Stream<BoardGame> filterNumericDouble(Stream<BoardGame> stream, double value,
-                                                  BiPredicate<BoardGame, Double> predicate) {
-        return stream.filter(g -> predicate.test(g, value));
-    }
-
-    /**
-     * Filters the stream of board games based on a numeric integer value.
-     * @param stream the stream of board games
-     * @param value the numeric integer value to filter on
-     * @param predicate the predicate to apply for filtering
-     * @return a stream of filtered board games
-     */
-    private Stream<BoardGame> filterNumericInt(Stream<BoardGame> stream, int value,
-                                               BiPredicate<BoardGame, Integer> predicate) {
-        return stream.filter(g -> predicate.test(g, value));
     }
 
     /**
@@ -274,58 +212,93 @@ public class Planner implements IPlanner {
      * @param predicate the predicate to apply for filtering
      * @return a stream of filtered board games
      */
-    private Stream<BoardGame> filterString(Stream<BoardGame> stream, GameData col, String value,
-                                           BiPredicate<String, String> predicate) {
+    private Stream<BoardGame> filterStringContains(Stream<BoardGame> stream, GameData col, String value,
+                                                   BiPredicate<String, String> predicate) {
         return stream.filter(g -> predicate.test(g.getStringValue(col).toLowerCase(), value.toLowerCase()));
     }
 
     /**
-     * Filters a stream of board games based on string equality or inequality.
+     * Filters the stream of board games based on a numeric double value.
      * @param stream the stream of board games
      * @param col the game data field to filter on
-     * @param value the string value to filter on
-     * @param isEqual if true, filters the stream to include games where the column value equals
-     *                the provided value; if false, filters the stream to include games where the
-     *                column value does not equal the provided value
+     * @param value the numeric double value to filter on
+     * @param comparator the comparator used for numeric double comparison
+     * @param operator the comparison operator (">", "<", ">=", "<=", "==", "!=")
      * @return a stream of filtered board games
+     * @throws IllegalArgumentException if an invalid operator is provided
      */
-    private Stream<BoardGame> filterStringEquality(Stream<BoardGame> stream, GameData col,
-                                                   String value, boolean isEqual) {
-        if (isEqual) {
-            return stream.filter(g -> g.getStringValue(col).equalsIgnoreCase(value));
-        } else {
-            return stream.filter(g -> !g.getStringValue(col).equalsIgnoreCase(value));
+    private Stream<BoardGame> filterNumericDouble(Stream<BoardGame> stream, GameData col, String value,
+                                                  Comparator<Double> comparator, Operations operator) {
+        Double doubleValue = Double.valueOf(value);
+
+        switch (operator) {
+            case GREATER_THAN:
+                return stream.filter(
+                        g -> comparator.compare(g.getNumericValueDouble(col), doubleValue) > 0
+                );
+            case LESS_THAN:
+                return stream.filter(
+                        g -> comparator.compare(g.getNumericValueDouble(col), doubleValue) < 0
+                );
+            case GREATER_THAN_EQUALS:
+                return stream.filter(
+                        g -> comparator.compare(g.getNumericValueDouble(col), doubleValue) >= 0
+                );
+            case LESS_THAN_EQUALS:
+                return stream.filter(
+                        g -> comparator.compare(g.getNumericValueDouble(col), doubleValue) <= 0
+                );
+            case EQUALS:
+                return stream.filter(
+                        g -> comparator.compare(g.getNumericValueDouble(col), doubleValue) == 0
+                );
+            case NOT_EQUALS:
+                return stream.filter(
+                        g -> comparator.compare(g.getNumericValueDouble(col), doubleValue) != 0
+                );
+            default:
+                throw new IllegalArgumentException("Invalid operator: " + operator);
         }
     }
 
     /**
-     * Filters a stream of board games based on string comparison.
+     * Filters the stream of board games based on a numeric integer value.
      * @param stream the stream of board games
      * @param col the game data field to filter on
-     * @param value the string value to filter on
-     * @param comparator the comparator used for string comparison
-     * @param operator the comparison operator (">", "<", ">=", "<=")
+     * @param value the numeric integer value to filter on
+     * @param comparator the comparator used for numeric double comparison
+     * @param operator the comparison operator (">", "<", ">=", "<=", "==", "!=")
      * @return a stream of filtered board games
      * @throws IllegalArgumentException if an invalid operator is provided
      */
-    private Stream<BoardGame> filterStringCompare(Stream<BoardGame> stream, GameData col, String value,
-                                                  Comparator<String> comparator, String operator) {
+    private Stream<BoardGame> filterNumericInt(Stream<BoardGame> stream, GameData col, String value,
+                                               Comparator<Integer> comparator, Operations operator) {
+        Integer intValue = Integer.parseInt(value);
+
         switch (operator) {
-            case ">":
+            case GREATER_THAN:
                 return stream.filter(
-                        g -> comparator.compare(g.getStringValue(col).toLowerCase(), value.toLowerCase()) > 0
+                        g -> comparator.compare(g.getNumericValueInt(col), intValue) > 0
                 );
-            case "<":
+            case LESS_THAN:
                 return stream.filter(
-                        g -> comparator.compare(g.getStringValue(col).toLowerCase(), value.toLowerCase()) < 0
+                        g -> comparator.compare(g.getNumericValueInt(col), intValue) < 0
                 );
-            case ">=":
+            case GREATER_THAN_EQUALS:
                 return stream.filter(
-                        g -> comparator.compare(g.getStringValue(col).toLowerCase(), value.toLowerCase()) >= 0
+                        g -> comparator.compare(g.getNumericValueInt(col), intValue) >= 0
                 );
-            case "<=":
+            case LESS_THAN_EQUALS:
                 return stream.filter(
-                        g -> comparator.compare(g.getStringValue(col).toLowerCase(), value.toLowerCase()) <= 0
+                        g -> comparator.compare(g.getNumericValueInt(col), intValue) <= 0
+                );
+            case EQUALS:
+                return stream.filter(
+                        g -> comparator.compare(g.getNumericValueInt(col), intValue) == 0
+                );
+            case NOT_EQUALS:
+                return stream.filter(
+                        g -> comparator.compare(g.getNumericValueInt(col), intValue) != 0
                 );
             default:
                 throw new IllegalArgumentException("Invalid operator: " + operator);

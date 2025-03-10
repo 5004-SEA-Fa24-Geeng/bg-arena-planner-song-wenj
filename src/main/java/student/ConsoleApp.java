@@ -246,7 +246,7 @@ public class ConsoleApp {
                                 sort.indexOf(ConsoleText.CMD_SORT_OPTION_DIRECTION_DESC.toString()));
                     }
                     try {
-                        sortOn = GameData.fromString(sort);
+                        sortOn = GameData.fromString(sort.trim());
                     } catch (IllegalArgumentException e) {
                         printOutput("%s%n", ConsoleText.INVALID);
                         return;
