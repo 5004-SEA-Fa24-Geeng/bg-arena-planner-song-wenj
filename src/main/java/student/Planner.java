@@ -314,4 +314,12 @@ public class Planner implements IPlanner {
     public void reset() {
         games = new HashSet<>(initialGames);
     }
+
+    /**
+     * Returns a copy of the set of all board games managed by the planner.
+     * @return A copy of the set of all board games.
+     */
+    public Set<BoardGame> getGames() {
+        return new HashSet<>(games);
+    }
 }
