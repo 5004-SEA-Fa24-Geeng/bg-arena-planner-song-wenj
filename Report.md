@@ -220,5 +220,6 @@ Another region that generally has a lower than average internet penetration is A
 
 #### References
 
-* [1]: The most spoken languages in the world in 2024. https://www.berlitz.com/blog/most-spoken-languages-world. Accessed: 2025-03-08.
-* [2]: Global internet penetration rate as of February 2025, by region. https://www.statista.com/statistics/269329/penetration-rate-of-the-internet-by-region/. Accessed: 2025-03-08.
+[1]: The most spoken languages in the world in 2024. https://www.berlitz.com/blog/most-spoken-languages-world. Accessed: 2025-03-08.
+
+[2]: Global internet penetration rate as of February 2025, by region. https://www.statista.com/statistics/269329/penetration-rate-of-the-internet-by-region/. Accessed: 2025-03-08.

@@ -285,40 +285,90 @@ For the final design, you just need to do a single diagram that includes both th
 
 ```mermaid
 classDiagram
-    class GameData {
-        +NAME : GameData
-        +ID : GameData
-        +RATING : GameData
-        +DIFFICULTY : GameData
-        +RANK : GameData
-        +MIN_PLAYERS : GameData
-        +MAX_PLAYERS : GameData
-        +MIN_TIME : GameData
-        +MAX_TIME : GameData
-        +YEAR : GameData
-        -columnName : String
-        +GameData(String columnName)
-        +getColumnName() : String
-        +fromColumnName(String columnName) : GameData
-        +fromString(String name) : GameData
+    BGArenaPlanner ..> IPlanner
+    BGArenaPlanner ..> IGameList
+    BGArenaPlanner ..> GamesLoader
+    BGArenaPlanner --> ConsoleApp
+
+    IPlanner ..> BoardGame
+    IPlanner ..> GameData
+    IGameList ..> BoardGame
+    
+    GamesLoader ..> BoardGame
+    
+    BoardGame ..> GameData
+    
+    ConsoleApp ..> IPlanner
+    ConsoleApp ..> IGameList
+    ConsoleApp ..> ConsoleText
+    ConsoleApp ..> BoardGame
+    ConsoleApp ..> GameData
+
+    Planner --|> IPlanner
+    Planner ..> BoardGame
+    Planner ..> GameData
+    Planner ..> Operations
+
+    GameList --|> IGameList
+    GameList ..> BoardGame
+
+    class BGArenaPlanner {
+        -static final String DEFAULT_COLLECTION
+        -BGArenaPlanner()
+        +main(String[] args)
     }
-```
 
+    class GamesLoader {
+        <<static>>
+        +loadGamesFile(String fileName) : Set<BoardGame>
+    }
 
-```mermaid
-classDiagram
+    class ConsoleApp {
+        -static final Scanner IN
+        -static final String DEFAULT_FILENAME
+        -static final Random RND
+        -Scanner current
+        -IGameList gameList
+        -IPlanner planner
+        +ConsoleApp(IGameList gameList, IPlanner planner)
+        +start()
+        -randomNumber()
+        -processHelp()
+        -processFilter()
+        -printFilterStream(Stream<BoardGame> games, GameData sortON)
+        -processListCommands()
+        -printCurrentList()
+        -nextCommand()
+        -remainder()
+        -getInput(String format, Object... args)
+        -printOutput(String format, Object... output)
+    }
+
+    class ConsoleText {
+        WELCOME, HELP, INVALID, GOODBYE, PROMPT, NO_FILTER,
+        NO_GAMES_LIST, FILTERED_CLEAR, LIST_HELP, FILTER_HELP,
+        INVALID_LIST, EASTER_EGG, CMD_EASTER_EGG, CMD_EXIT,
+        CMD_HELP, CMD_QUESTION, CMD_FILTER, CMD_LIST, CMD_SHOW,
+        CMD_ADD, CMD_REMOVE, CMD_CLEAR, CMD_SAVE, CMD_OPTION_ALL,
+        CMD_SORT_OPTION, CMD_SORT_OPTION_DIRECTION_ASC,
+        CMD_SORT_OPTION_DIRECTION_DESC
+        -static final Properties CTEXT
+        +toString() : String
+        +fromString(String str) : ConsoleText
+    }
+
     class BoardGame {
-        -name : String
-        -id : int
-        -minPlayers : int
-        -maxPlayers : int
-        -maxPlayTime : int
-        -minPlayTime : int
-        -difficulty : double
-        -rank : int
-        -averageRating : double
-        -yearPublished : int
-        +BoardGame(name: String, id: int, \nminPlayers: int, maxPlayers: int, \nminPlayTime: int, maxPlayTime: int, \ndifficulty: double, rank: int, \naverageRating: double, yearPublished: int)
+        -String name
+        -int id
+        -int minPlayers
+        -int maxPlayers
+        -int maxPlayTime
+        -int minPlayTime
+        -double difficulty
+        -int rank
+        -double averageRating
+        -int yearPublished
+        +BoardGame(String name, int id, int minPlayers,\nint maxPlayers, int minPlayTime, int maxPlayTime,\ndouble difficulty, int rank, double averageRating,\nint yearPublished)
         +getName() : String
         +getId() : int
         +getMinPlayers() : int
@@ -329,25 +379,87 @@ classDiagram
         +getRank() : int
         +getRating() : double
         +getYearPublished() : int
-        +toStringWithInfo(col: GameData) : String
-        +getNumericValue(col: GameData) : Integer
-        +getStringValue(col: GameData) : String
+        +toStringWithInfo(GameData col) : String
         +toString() : String
         +equals(Object obj) : boolean
         +hashCode() : int
-        +main(String[] args) : void
     }
-```
 
+    class GameData {
+        NAME
+        ID
+        RATING
+        DIFFICULTY
+        RANK
+        MIN_PLAYERS
+        MAX_PLAYERS
+        MIN_TIME
+        MAX_TIME
+        YEAR
+        - static final String columnName
+        + getColumnName() : String
+        + fromColumnName(String columnName) : GameData
+        + fromString(String name) : GameData
+    }
 
-```mermaid
-classDiagram
-    class GamesLoader {
-        -DELIMITER : String
-        -GamesLoader()
-        +loadGamesFile(fileName: String) : Set<BoardGame>
-        -toBoardGame(line: String, columnMap: Map<GameData, Integer>) : BoardGame
-        -processHeader(header: String) : Map<GameData, Integer>
+    class Operations {
+        EQUALS
+        NOT_EQUALS
+        GREATER_THAN
+        LESS_THAN
+        GREATER_THAN_EQUALS
+        LESS_THAN_EQUALS
+        CONTAINS
+        - static final String operator
+        + getOperator() : String
+        + fromOperator(String operator) : Operations
+        + getOperatorFromStr(String str) : Operations
+    }
+    
+    class IPlanner {
+        <<interface>>
+        + filter(String filter) : Stream<BoardGame>
+        + filter(String filter, GameData sortOn) : Stream<BoardGame>
+        + filter(String filter, GameData sortOn, boolean ascending) : Stream<BoardGame>
+        + reset() : void
+    }
+    
+    class Planner {
+        - Set<BoardGame> games
+        - Set<BoardGame> initialGames
+        + Planner(Set<BoardGame> games)
+        + filter(String filter) : Stream<BoardGame>
+        + filter(String filter, GameData sortOn) : Stream<BoardGame>
+        + filter(String filter, GameData sortOn, boolean ascending) : Stream<BoardGame>
+        - compare(BoardGame g1, BoardGame g2, GameData sortOn) : int
+        - filterStringCompare(Stream<BoardGame> stream, GameData col, String value, Comparator<String> comparator, Operations operator) : Stream<BoardGame>
+        - filterStringContains(Stream<BoardGame> stream, GameData col, String value, BiPredicate<String, String> predicate) : Stream<BoardGame>
+        - filterNumericDouble(Stream<BoardGame> stream, GameData col, String value, Comparator<Double> comparator, Operations operator) : Stream<BoardGame>
+        - filterNumericInt(Stream<BoardGame> stream, GameData col, String value, Comparator<Integer> comparator, Operations operator) : Stream<BoardGame>
+        + reset() : void
+    }
+    
+    class IGameList {
+        <<interface>>
+        + addToList(String gameName, Stream<BoardGame>) : void
+        + removeFromList(String gameName) : void
+        + clear() : void
+        + count() : int
+        + getGameNames() : List<String>
+        + saveGame(String fileName) : void
+        + static final String ADD_ALL
+    }
+    
+    class GameList {
+        - List<BoardGame> games
+        + GameList()
+        + getGameNames() : List<String>
+        + addToList(String str, Stream<BoardGame> filtered) : void
+        + removeFromList(String str) : void
+        + clear() : void
+        + saveGame(String filename) : void
+        + count() : int
+        + getGames() : List<BoardGame>
     }
 ```
 
@@ -358,3 +470,12 @@ classDiagram
 > The value of reflective writing has been highly researched and documented within computer science, from learning to information to showing higher salaries in the workplace. For this next part, we encourage you to take time, and truly focus on your retrospective.
 
 Take time to reflect on how your design has changed. Write in *prose* (i.e. do not bullet point your answers - it matters in how our brain processes the information). Make sure to include what were some major changes, and why you made them. What did you learn from this process? What would you do differently next time? What was the most challenging part of this process? For most students, it will be a paragraph or two. 
+
+The major change from the initial design is how the filtering based on various types data is implemented. The filter method in the Planner class initially contains a lot 
+of repeated codes, whereas in the final version is much cleaner. In the final version, the filtering functionality is split into four parts, filter string by comparison, 
+filter string by containing, filter numeric by double value, and filter numeric by integer value. These four parts of functionality are abstracted as private helper functions 
+and called in appropriate cases in the filter method.
+
+Another change is how the progressive filtering and reset functionalities are implemented. Initially, the program failed to perform filtering progressively. This was because 
+the initial program did not update the games set with the filteredStream after filtering. In the final design, the games set of the Planner class is correctly updated after 
+filtering. Another attribute, initialGames, is added to the Planner class for resetting the games set to original when the filters need to be cleared.

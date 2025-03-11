@@ -17,13 +17,27 @@ capacity.
   
 Did you use any external resources (you do not have to cite in class material)? (Cite them below)
 
-* The Java Optional class is being used in the process of matching the employee with the corresponding time card record. The use
-  of Optional can help handle the case where there is no time card record for a certain employee. And we can use the isPresent()
-  method to check if there is a value inside the Optional object[1].
+* A functional interface is an interface that has only one abstract method. For example the Comparator<T> interface contains 
+an abstract method int compare(T o1, T o2), and the BiPredicate<T, U> interface contains an abstract method boolean test(T t, U u)[1].
+* A lambda expression provides the implementation for the single abstract method defined by the functional interface. The arguments 
+and return value of the lambda expression must match the method signature defined in the functional interface[2].
+* A method reference is a shorthand for lambda expression that calls an existing method. For example, String::compareToIgnoreCase is 
+equivalent to the lambda expression (s1, s2) -> s1.compareToIgnoreCase(s2).
+* When the java compiler encounters a lambda expression, it goes through several steps to return an instance of the functional interface. 
+The steps taken by the compiler are type inference, functional interface verification, method signature matching, lambda body verification, 
+bytecode generation with invokedynamic, and runtime dynamic class creation. At runtime, the LambdaMetaFactory generates an instance of a 
+dynamically created class that implements the functional interface based on the lambda expression. The instance is then used in the method 
+that is expecting it[4].
 
 ## References
 
-[1]: Guide To Java Optional: 2025. https://www.baeldung.com/java-optional. Accessed: 2025-02-08.
+[1]: Functional Interfaces in Java. https://www.baeldung.com/java-8-functional-interfaces. Accessed: 2025-03-08.
+
+[2]: How can we use lambda expressions with functional interfaces in Java? https://www.tutorialspoint.com/how-can-we-use-lambda-expressions-with-functional-interfaces-in-java. Accessed: 2025-03-08.
+
+[3]: Method References. https://docs.oracle.com/javase/tutorial/java/javaOO/methodreferences.html. Accessed: 2025-03-08.
+
+[4]: Lambda Expressions in Java. https://medium.com/@narendernegi007/lambda-expressions-in-java-fd606f0955a2. Accessed: 2025-03-08.
 
 
 (Optional) What was your favorite part of the assignment?
